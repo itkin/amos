@@ -1,29 +1,32 @@
- require 'cancan'
- require 'ruby-debug'
+require 'cancan'
+require 'ruby-debug'
  
-  class AmosController < ApplicationController
+class AmosController < ApplicationController
 
-    unloadable
+  unloadable
 
-    before_filter :set_model
-    before_filter :set_current_record, :only => [:show, :update, :destroy]
-    #before_filter :should_paginate
-    
-    def index
-      options = remove_attributes_from ['offset', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
-      options.underscore_keys!
 
-      params[:limit] = params[:limit] ? params[:limit].to_i : nil
-      params[:offset] = params[:offset] ? params[:offset].to_i : nil
+  before_filter :set_model
+  before_filter :set_current_record, :only => [:show, :update, :destroy]
+  #before_filter :should_paginate
 
-      records = @model.list(options)
-      render :json => {
-        :data => records.limit(params[:limit]).offset(params[:offset]).as_json(params[:fields]),
-        :offset => params[:offset],
-        :limit => params[:limit],
-        :count => records.count
-      }
-    end
+  def index
+
+    options = remove_attributes_from ['updating', 'offset', 'format', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
+    options.underscore_keys!
+
+    params[:limit] = params[:limit] ? params[:limit].to_i : nil
+    params[:offset] = params[:offset] ? params[:offset].to_i : nil
+
+    records = @model.list(options)
+
+    render :json => {
+      :data => records.limit(params[:limit]).offset(params[:offset]).as_json(params[:fields]),
+      :offset => params[:offset],
+      :limit => params[:limit],
+      :count => records.count
+    }
+  end
 
   def show
     render :json => @record.as_json(params[:fields])
@@ -40,15 +43,15 @@
     
   def create
     if can? :create, @model
-      attributes = remove_attributes_from ['fields','id', 'model', 'controller', 'action'], params.clone
+      attributes = remove_attributes_from ['fields','format','id', 'model', 'controller', 'action'], params.clone
       attributes.underscore_keys!
       attributes = set_association_keys_for(@model, attributes)
 
       record = @model.new(attributes)
       if record.save
-          render :json => record.as_json(params[:fields])
+        render :json => record.as_json(params[:fields])
       else
-          render :json => record.errors, :status => 400
+        render :json => record.errors, :status => 400
       end
     else
       render_authorized
@@ -57,12 +60,14 @@
     
   def update
     if can? :update, @model
-      attributes = remove_attributes_from ['fields', 'id', 'model', 'controller', 'action'], params.clone
+
+      attributes = remove_attributes_from ['fields','format', 'id', 'model', 'controller', 'action'], params.clone
+
       attributes.underscore_keys!
       attributes = set_association_keys_for(@model, attributes)
 
       if @record.update_attributes(attributes)
-        render :json => record.as_json(params[:fields])
+        render :json => @record.as_json(params[:fields])
       else
         render :json => @record.errors, :status => 400
       end
@@ -72,7 +77,7 @@
   end
 
   protected
-  
+
     def set_model
       begin
         @model = params[:model].gsub(/\.json$/i,'').singularize.camelize.constantize

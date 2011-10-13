@@ -18,7 +18,6 @@ class ActiveRecord::Base
     options ||= {}
     options.symbolize_keys!
     includes = {}
-
     if options[:include]
       # control if a symbol or string is passed
       options[:include] = [options[:include]] unless options[:include].is_a?(Enumerable)
