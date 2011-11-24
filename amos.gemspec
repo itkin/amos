@@ -2,7 +2,7 @@
 # project in your rails apps through git.
 Gem::Specification.new do |s|
   s.name = "amos"
-  s.version = "0.0.4"
+  s.version = "0.0.5"
 
   s.summary = "amos - a model only server."
   s.description = "A simple server that determines the model and action data based upon the incoming url."
@@ -26,7 +26,6 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 1.8.1'
   s.add_dependency('rails', '~> 3.0')
   s.add_dependency('cancan', '>= 1.6.6')
-  s.add_dependency('will_paginate', '~> 3.0.pre2')
   
   s.add_development_dependency('database_cleaner')
   s.add_development_dependency('sqlite3-ruby')

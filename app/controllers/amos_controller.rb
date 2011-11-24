@@ -5,21 +5,17 @@ class AmosController < ApplicationController
 
   unloadable
 
-
   before_filter :set_model
   before_filter :set_current_record, :only => [:show, :update, :destroy]
-  #before_filter :should_paginate
 
   def index
-
-    options = remove_attributes_from ['updating', 'offset', 'format', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
+    options = remove_attributes_from ['offset', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
     options.underscore_keys!
 
     params[:limit] = params[:limit] ? params[:limit].to_i : nil
     params[:offset] = params[:offset] ? params[:offset].to_i : nil
 
     records = @model.list(options)
-
     render :json => {
       :data => records.limit(params[:limit]).offset(params[:offset]).as_json(params[:fields]),
       :offset => params[:offset],
@@ -65,7 +61,7 @@ class AmosController < ApplicationController
 
       attributes.underscore_keys!
       attributes = set_association_keys_for(@model, attributes)
-
+      
       if @record.update_attributes(attributes)
         render :json => @record.as_json(params[:fields])
       else
