@@ -1,9 +1,6 @@
-require 'cancan'
+require "cancan"
 
- 
 class AmosController < ApplicationController
-
-  crudify
 
 end
 

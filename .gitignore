@@ -7,3 +7,4 @@ test/dummy/tmp/
 .rvmrc
 .DS_Store
 amos.tmproj
+.idea/

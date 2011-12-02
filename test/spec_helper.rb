@@ -1,3 +1,5 @@
+require "ruby-debug"
+
 # Configure Rails Envinronment
 ENV["RAILS_ENV"] = "test"
 
@@ -34,4 +36,9 @@ RSpec.configure do |config|
   # examples within a transaction, remove the following line or assign false
   # instead of true.
   config.use_transactional_fixtures = true
+
+  config.treat_symbols_as_metadata_keys_with_true_values = true
+  config.filter_run :focus => true
+  config.run_all_when_everything_filtered = true
+
 end
