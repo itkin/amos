@@ -12,30 +12,27 @@ module Amos
       end
 
       def set_parent_model
-        control_error "Parent Model not found" do
-          @parent_model = params[:parent_model].camelize.constantize
+        control_error "Parent model not found" do
+          @parent_model = params[:parent_model].singularize.camelize.constantize
           @relation = params[:model].underscore.to_sym
           @macro = @parent_model.reflections[@relation].macro
         end
       end
 
       def set_model
-        set_parent_model if params[:parent_model]
         control_error "Model not found" do
           @model = params[:model].singularize.camelize.constantize
         end
-
-        authorize :read
       end
 
       def set_attributes
-        @attributes = remove_attributes_from ['parent', 'parent_id', 'fields','format','id', 'model', 'controller', 'action'], params.clone
+        @attributes = remove_attributes_from ['parent_model', 'parent_id', 'fields','format','id', 'model', 'controller', 'action'], params.clone
         @attributes.underscore_keys!
-        @attributes = set_association_keys_for(@model, @attributes)
+        @attributes = set_association_keys_for(@model, @attributes[@model.name.underscore] || @attributes)
       end
 
       def set_parent_record
-        control_error "Parent record #{params[:parent]} #{params[:parent_id]} not found" do
+        control_error "Parent record #{params[:parent_model]} #{params[:parent_id]} not found" do
           @parent_record = @parent_model.find(params[:parent_id])
         end
       end
@@ -43,14 +40,18 @@ module Amos
       def set_record
         control_error do
           if @parent_record and @macro == :has_many
-            @record = @parent_record.send(@relation).find(:id)
+            @record = @parent_record.send(@relation).find(params[:id])
           elsif @parent_record
             @record = @parent_record.send(@relation)
             if params[:id] and @record.id != params[:id].to_i
               raise ActiveRecord::RecordNotFound, "Record #{params[:id]} doesn't belongs_to #{@parent_model.name}.#{@relation}"
             end
           else
-            @record = @model.find(params[:id])
+            begin
+              @record = @model.find(params[:id])
+            rescue
+              raise ActiveRecord::RecordNotFound, "Record #{params[:id]} not found"
+            end
           end
         end
       end
@@ -58,7 +59,6 @@ module Amos
       def render_records(records)
         params[:limit] = params[:limit] ? params[:limit].to_i : nil
         params[:offset] = params[:offset] ? params[:offset].to_i : nil
-
         render :json => {
           :data => records.limit(params[:limit]).offset(params[:offset]).as_json(params[:fields]),
           :offset => params[:offset],
@@ -72,14 +72,14 @@ module Amos
       end
 
       def render_error(error, code=400)
-        render :json => error, :status => code
+        render :json => error, :status => code and return
       end
 
-      def control_error error='', code=400, errorClass=Exception, &block
+      def control_error error_message=nil, code=400, errorClass=Exception, &block
         begin
           block.call
         rescue errorClass => e
-          render_error(error || e.message, code)
+          render_error(error_message || e.message, code) unless performed?
         end
       end
 
@@ -97,27 +97,39 @@ module Amos
       include Amos::Controller::Helpers
 
       def index
-        options = remove_attributes_from ['parent_model', 'parent_id','updating', 'offset', 'format', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
-        options.underscore_keys!
+        authorize :read do
+          options = remove_attributes_from ['parent_model', 'parent_id','updating', 'offset', 'format', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
+          options.underscore_keys!
 
-        if @parent_record
-          @records = @parent_record.send(@relation).list(options)
-        else
-          @records = @model.list(options)
+          if @parent_record
+            @records = @parent_record.send(@relation).list(options)
+          else
+            @records = @model.list(options)
+          end
+
+          render_records(@records)
         end
-
-        render_records(@records)
       end
       def show
-        render_record(@record)
+        authorize :read do
+          render_record(@record)
+        end
       end
       def create
         authorize :create do
-          @model.new(@attributes)
+
+          if @parent_record and @macro == :has_many
+            @record = @parent_record.send(@relation).new(@attributes)
+          elsif @parent_record
+            @record = @parent_record.send "build_#{@relation}", @attributes
+          else
+            @record = @model.new(@attributes)
+          end
+
           if (@parent_record || @record).save
             render_record(@record)
           else
-            render_error(@record.errors, 413)
+            render_error(@record.errors, 400)
           end
         end
       end
@@ -127,29 +139,20 @@ module Amos
           if (@parent_record || @record).save
             render_record(@record)
           else
-            render_error(@record.error,413)
+            render_error(@record.errors, 400) #406 :not_acceptable
           end
         end
       end
       def destroy
         authorize :delete do
-          @record.destroy
-          render :json => {:success => "true"}
+          if @record.destroy
+            render :json => {:success => "true"}
+          else
+            render_error(@record.errors)
+          end
         end
       end
     end
   end
-  module ApplicationController
-    def self.included(base)
-      base.class_eval do
-        def self.crudify
-          before_filter :set_model
-          before_filter :set_record, :only => [:show, :update, :destroy]
-          before_filter :set_attributes, :only => [:update, :create]
 
-          self.send :include, Amos::Controller::Base
-        end
-      end
-    end
-  end
 end

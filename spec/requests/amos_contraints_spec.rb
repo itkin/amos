@@ -2,7 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/../../test/spec_helper')
 
 describe "routes" do
 
-  it "routes /user to the index action" , :focus do
+  it "routes /user to the index action" do
     xhr :get, "/users"
   end
 

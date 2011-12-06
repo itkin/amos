@@ -1,8 +1,8 @@
 require File.expand_path(File.dirname(__FILE__) + '/../../test/spec_helper')
 
-describe "AMOS " do
+describe "AMOS " , :focus do
   it "routes /user to the index action" do
-    { :get => "/user" }.
+    { :get => "/users" }.
       should route_to(:controller => "amos", :action => "index", :model => 'user', :format => "json")
   end
 

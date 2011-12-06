@@ -9,7 +9,7 @@ describe AmosController do
   let(:recipe_list) {mock(ActiveRecord::Relation)}
 
    
-  context "simple"  do
+  context "simple" do
 
     describe 'GET /user'  do
 
@@ -24,7 +24,7 @@ describe AmosController do
           @params = {:model => 'user', :limit => 1, :offset => 0}
           end
 
-        it "selects the correct model", :focus do
+        it "selects the correct model" do
           get :index, @params
           assigns[:model].should == User
         end
@@ -34,13 +34,13 @@ describe AmosController do
           get :index, :model => 'user'
         end
 
-        it "returns the correct json data", :focus do
+        it "returns the correct json data" do
           get :index, :model => 'user'
-          debugger
+
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
               {"data"=>[
-                        {"name"=>"J Smith", "email"=>"smith@smith.com"}
+                        {"id"=> nil, "name"=>"J Smith", "email"=>"smith@smith.com"}
                        ],
                 "count"=>1, "limit"=>nil, "offset"=>nil}.to_json)
         end
@@ -59,8 +59,7 @@ describe AmosController do
 
         it "returns the correct json data" do
           get :index, :model => 'user'
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          response.body.should == "You are not authorized to access this data"
         end
       end
     end
@@ -93,7 +92,7 @@ describe AmosController do
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
           {"data"=>[
-              {"name"=>"J Smith", "email"=>"smith@smith.com"}
+              {"id" => nil, "name"=>"J Smith", "email"=>"smith@smith.com"}
             ],
            "count"=>1, "limit"=>1, "offset"=>0}.to_json)
         end
@@ -127,7 +126,7 @@ describe AmosController do
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode({"data" =>
           [
-              {"name" => "J Smith", "email"=>"smith@smith.com"}
+              {"id" => nil, "name" => "J Smith", "email"=>"smith@smith.com"}
           ],
           "count" => 1, "limit" => 1, "offset" => 0 }.to_json)
         end
@@ -147,8 +146,7 @@ describe AmosController do
 
         it "returns the correct json data" do
           get :index, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          response.body.should == "You are not authorized to access this data"
         end
       end
     end
@@ -210,7 +208,7 @@ describe AmosController do
           get :show, :model => 'users', :id => '1'
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
-              {"name"=>"J Smith", "email"=>"smith@smith.com"}.to_json)
+              {"id" => nil, "name"=>"J Smith", "email"=>"smith@smith.com"}.to_json)
         end
       end
 
@@ -223,9 +221,7 @@ describe AmosController do
 
         it "returns the correct json data" do
           get :show, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"error"=>"Record 1 not found"}.to_json)
+          response.body.should == "Record 1 not found"
         end
 
         it "returns a 400 error code" do
@@ -296,11 +292,9 @@ describe AmosController do
           User.stub('find').with("1").and_raise(ActiveRecord::RecordNotFound)
          end
 
-        it "returns a fail response" do
-           delete :destroy, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"error"=>"Record 1 not found"}.to_json)
+        it "returns a fail response"  do
+          delete :destroy, @params
+          response.body.should == "Record 1 not found"
         end
 
         it "returns a 400 error code" do
@@ -322,8 +316,7 @@ describe AmosController do
 
         it "returns the correct json data" do
           delete :destroy, :model => 'users', :id => '1'
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          response.body.should  == "You are not authorized to access this data"
         end
       end
 
@@ -393,8 +386,7 @@ describe AmosController do
 
         it "returns the correct json data" do
           put :update, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          response.body.should == "You are not authorized to access this data"
         end
       end
     end
@@ -424,7 +416,7 @@ describe AmosController do
           post :create, @params
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
-              {"name"=>"J Smith", "email"=>"smith@smith.com"}.to_json)
+              {"id" => nil, "name"=>"J Smith", "email"=>"smith@smith.com"}.to_json)
         end
       end
 
@@ -461,8 +453,7 @@ describe AmosController do
 
         it "returns the correct json data" do
           post :create, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          response.body.should == "You are not authorized to access this data"
         end
       end
 
@@ -486,14 +477,14 @@ describe AmosController do
           get :show, @params
         end
 
-        it "returns the correct json data" do
+        it "returns the correct json data"  do
           get :show, @params
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
               {"name"=>"J Smith",
                 "recipes" => [
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId" => nil},
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId" => nil}
+                  {"id" => nil, 'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId" => nil},
+                  {"id" => nil, 'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId" => nil}
                 ]
               }.to_json)
         end
@@ -523,12 +514,12 @@ describe AmosController do
           ActiveSupport::JSON.decode(
               {"name"=>"J Smith", "email"=>"smith@smith.com",
                 "recipes" => [
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil},
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil}
+                  {"id" => nil, 'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil},
+                  {"id" => nil, 'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil}
                 ],
                 "shops" => [
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil},
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil}
+                  {"id" => nil, 'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil},
+                  {"id" => nil, 'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil}
                 ]
               }.to_json)
         end
@@ -536,21 +527,22 @@ describe AmosController do
 
    end
  end
-  describe "nested" do
+  context "nested" do
 
     describe 'GET /users/1/recipes' do
-
-      context 'successful operation' do
-
-         before(:each) do
+      before do
+        @params = {:parent_model => "users", :parent_id => "1", :model => 'recipes', :limit => 1, :offset => 0}
+      end
+      context 'successful operation'  do
+        before(:each) do
           setAbilityAuthorized
           User.stub('find'){user}
-          Recipe.stub("where"){recipe_list}
+          user.stub(:recipes){recipe_list}
+          recipe_list.stub(:list){recipe_list}
           recipe_list.stub('limit'){recipe_list}
           recipe_list.stub('offset'){[recipe]}
           recipe_list.stub('count'){1}
-          @params = {:parent_model => "user", :parent_id => "1", :model => 'recipes', :limit => 1, :offset => 0}
-          end
+        end
 
         it "selects the correct model" do
           get :index, @params
@@ -559,113 +551,26 @@ describe AmosController do
 
         it "calls the correct method" do
           User.should_receive('find'){user}
-          Recipe.should_receive('where'){recipe_list}
-          get :index, :model => 'user'
+          user.should_receive("recipes"){recipe_list}
+          recipe_list.should_receive('list'){recipe_list}
+          get :index,  @params
         end
 
-        it "returns the correct json data" do
-          get :index, :model => 'user'
+        it "returns the correct json data"  do
+          get :index,  @params
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
-              {"data"=>[
-                        {"name"=>"J Smith", "email"=>"smith@smith.com"}
-                       ],
-                "count"=>1, "limit"=>nil, "offset"=>nil}.to_json)
+              {"data"=>[{"id"=> nil, "name"=>"Boiled eggs", "description"=>"Grab an egg", "userId" => nil}],
+              "count"=>1, "limit"=>1, "offset"=>0}.to_json
+          )
         end
       end
 
 
-      context 'failed authorization' do
+      context 'failed authorization'  do
         before(:each) do
           setAbilityUnauthorized
-         end
-
-         it "returns a 401 error code" do
-           get :index, :model => 'user'
-           response.status.should == 401
-         end
-
-        it "returns the correct json data" do
-          get :index, :model => 'user'
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
-        end
-      end
-    end
-
-    describe 'GET /user/?name=' do
-
-      context 'successful operation : single term' do
-        before(:each) do
-          setAbilityAuthorized
-          User.stub('where').with('name' => 'J Smith'){user_list}
-          user_list.stub('limit'){user_list}
-          user_list.stub('offset'){[user]}
-          user_list.stub('count'){1}
-          @params = {:model => 'user', :limit => 1, :offset => 0, :name => 'J Smith'}
-
-         end
-
-        it "selects the correct model" do
-          get :index, @params
-          assigns[:model].should == User
-        end
-
-        it "calls the correct method with no field filter" do
-          User.stub('where').with(:name => 'J Smith'){user_list}
-          get :index, @params
-        end
-
-        it "returns the correct json data with no field filter" do
-          get :index, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-          {"data"=>[
-              {"name"=>"J Smith", "email"=>"smith@smith.com"}
-            ],
-           "count"=>1, "limit"=>1, "offset"=>0}.to_json)
-        end
-
-        it "returns the correct json data with field filter" do
-          @params.merge!({:fields =>{:only => [ :email ]}})
-          get :index, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"data"=>[{"email"=>"smith@smith.com"}], "count"=>1, "limit"=>1, "offset"=>0}.to_json)
-        end
-
-      end
-
-      context 'successful operation : multiple terms' do
-        before(:each) do
-          setAbilityAuthorized
-          User.stub('where').with('name' => 'J Smith', 'email' => 'smith@smith.com'){user_list}
-          user_list.stub('limit'){user_list}
-          user_list.stub('offset'){[user]}
-          user_list.stub('count'){1}
-          @params = {:model => 'user', :limit => 1, :offset => 0, :name => 'J Smith', :email => 'smith@smith.com'}
-         end
-
-        it "calls the correct method with no field filter" do
-          User.should_receive('where').with('name' => 'J Smith', 'email' => 'smith@smith.com'){user_list}
-          get :index, @params
-        end
-
-        it "returns the correct json data with no field filter" do
-          get :index, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"data" =>
-          [
-              {"name" => "J Smith", "email"=>"smith@smith.com"}
-          ],
-          "count" => 1, "limit" => 1, "offset" => 0 }.to_json)
-        end
-      end
-
-
-      context 'failed authorization' do
-        before(:each) do
-          setAbilityUnauthorized
-          @params = {:model => 'user', :limit => 1, :offset => 0, :name => 'J Smith'}
+          User.stub('find'){user}
          end
 
          it "returns a 401 error code" do
@@ -675,70 +580,46 @@ describe AmosController do
 
         it "returns the correct json data" do
           get :index, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          response.body.should == "You are not authorized to access this data"
         end
       end
     end
 
-
-    describe 'GET /user?fields=' do
-
-      context 'successful operation' do
-        before(:each) do
-          setAbilityAuthorized
-          User.stub('where'){user_list}
-          user_list.stub('limit'){user_list}
-          user_list.stub('offset'){[user, user]}
-          user_list.stub('count'){1}
-          @params = {:model => 'user', :limit => 1, :offset => 0, :fields => {:only => [:email]}}
-         end
-
-        it "selects the correct model" do
-          get :index, @params
-          assigns[:model].should == User
-        end
-
-        it "calls the correct method" do
-          User.stub('where'){user_list}
-          get :index, @params
-        end
-
-        it "returns the correct json data" do
-          get :index, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({ "data" =>
-          [
-            {"email"=>"smith@smith.com"},
-            {"email"=>"smith@smith.com"}
-          ], "count" => 1, "limit" => 1, "offset" => 0}.to_json)
-        end
+    describe 'GET /users/1/recipes/:id' do
+      before do
+        @params = { :parent_model => 'users',  :parent_id =>"1", :model => "recipes", :id => '1' }
       end
-    end
-
-
-    describe 'GET /user/:id' do
-      context 'successful operation' do
+      context 'successful operation'  do
         before(:each) do
           setAbilityAuthorized
-          User.stub('find').with('1'){user}
+          User.stub(:find).with("1"){user}
+          user.stub(:recipes){recipe_list}
+          recipe_list.stub(:find){recipe}
+
         end
 
-        it "selects the correct model" do
-          get :show, :model => 'users', :id => '1'
-          assigns[:model].should == User
+        it "selects the correct model"   do
+          get :show, @params
+          assigns[:model].should == Recipe
+        end
+
+        it "selects the correct parent model" do
+          get :show, @params
+          assigns[:parent_model].should == User
         end
 
         it "calls the correct method" do
-          User.should_receive('find').with("1"){user}
-          get :show, :model => 'users', :id => '1'
+          User.should_receive(:find).with("1"){user}
+          user.should_receive(:recipes){recipe_list}
+          recipe_list.should_receive(:find).with("1"){recipe}
+          get :show, @params
         end
 
         it "returns the correct json data" do
-          get :show, :model => 'users', :id => '1'
+          get :show, @params
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
-              {"name"=>"J Smith", "email"=>"smith@smith.com"}.to_json)
+              {"id"=> nil, "name"=>"Boiled eggs", "description"=>"Grab an egg", "userId" => nil}.to_json)
         end
       end
 
@@ -746,14 +627,11 @@ describe AmosController do
         before(:each) do
           setAbilityAuthorized
           User.stub('find').with('1').and_raise(ActiveRecord::RecordNotFound)
-          @params = {:model => 'users', :id => '1'}
         end
 
         it "returns the correct json data" do
           get :show, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"error"=>"Record 1 not found"}.to_json)
+          response.body.should == "Parent record users 1 not found"
         end
 
         it "returns a 400 error code" do
@@ -763,49 +641,25 @@ describe AmosController do
       end
     end
 
-    describe 'GET /user/:id?fields=' do
-
-      context 'successful operation' do
-        before(:each) do
-          setAbilityAuthorized
-          User.stub('find').with("1"){user}
-          @params = {:model => 'users', :id => '1', :fields => {:only => [:email]}}
-         end
-
-        it "selects the correct model" do
-          get  :show, @params
-          assigns[:model].should == User
-        end
-
-        it "calls the correct method" do
-          User.should_receive('find').with("1"){user}
-          get  :show, @params
-        end
-
-        it "returns the correct json data" do
-          get  :show, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"email"=>"smith@smith.com"}.to_json)
-        end
-      end
-    end
-
     describe 'DELETE /user/:id' do
-
-      context 'successful operation' do
+      before do
+        @params = { :parent_model => 'users',  :parent_id =>"1", :model => "recipes", :id => '1' }
+      end
+      context 'successful operation'  do
         before(:each) do
           setAbilityAuthorized
           User.stub('find').with("1"){user}
-          @params = {:model => 'users', :id => '1'}
+          user.should_receive(:recipes){recipe_list}
+          recipe_list.should_receive(:find).with("1"){recipe}
         end
 
         it "selects the correct model" do
           delete :destroy, @params
-          assigns[:model].should == User
+          assigns[:model].should == Recipe
         end
 
         it "calls the correct method" do
-          user.should_receive('destroy')
+          recipe.should_receive('destroy')
           delete :destroy, @params
         end
 
@@ -820,68 +674,68 @@ describe AmosController do
       context 'failed operation' do
         before(:each) do
           setAbilityAuthorized
-          @params = {:model => 'users', :id => '1'}
-          User.stub('find').with("1").and_raise(ActiveRecord::RecordNotFound)
+          User.stub('find').with("1"){user}
+          user.stub(:recipes){recipe_list}
+          recipe_list.stub(:find).and_raise(ActiveRecord::RecordNotFound)
          end
 
-        it "returns a fail response" do
-           delete :destroy, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"error"=>"Record 1 not found"}.to_json)
-        end
-
         it "returns a 400 error code" do
-           delete :destroy, :model => 'users', :id => '1'
+          delete :destroy, @params
           response.status.should == 400
         end
       end
 
       context 'failed authorization' do
         before(:each) do
-          setAbilityUnauthorizedUser
+          setAbilityUnauthorized
           User.stub('find').with("1"){user}
+          user.stub(:recipes){recipe_list}
+          recipe_list.should_receive(:find).with("1"){recipe}
          end
 
          it "returns a 401 error code" do
-           delete :destroy, :model => 'users', :id => '1'
+           delete :destroy, @params
            response.status.should == 401
          end
 
         it "returns the correct json data" do
-          delete :destroy, :model => 'users', :id => '1'
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
+          delete :destroy, @params
+          response.body.should == "You are not authorized to access this data"
         end
       end
 
     end
 
-    describe 'PUT /user/:id' do
+    describe 'PUT /users/1/recipes/:id'  do
+      before do
+
+      end
       context 'successful  operation' do
         before(:each) do
           setAbilityAuthorized
-          User.should_receive('find').with("1"){user}
-          @params = {:model => 'users', :id => '1', :name => 'fred', :email => 'smith'}
+          User.stub('find').with("1"){user}
+          user.stub(:recipes){recipe_list}
+          recipe_list.should_receive(:find).with("1"){recipe}
+          @params = { :parent_model => 'users',  :parent_id =>"1", :model => "recipes", :id => '1', 'name' => 'fred', 'description' => 'smith' }
         end
 
         it "selects the correct model" do
-          user.stub('update_attributes').with('name' => 'fred', 'email' => 'smith'){true}
           put :update, @params
-          assigns[:model].should == User
+          assigns[:parent_model].should == User
+          assigns[:model].should == Recipe
         end
 
         it "calls the correct method"  do
-          user.should_receive('attributes=').with('name' => 'fred', 'email' => 'smith'){true}
-          user.should_receive('save')
+          recipe.should_receive('attributes=').with('name' => 'fred', 'description' => 'smith')
+          user.should_receive('save'){true}
           put :update, @params
         end
 
         it "returns a success response" do
+          recipe.stub('attributes=').with('name' => 'fred', 'description' => 'smith')
+          user.stub('save'){true}
           put :update, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {'name' => 'fred', 'email' => 'smith', "id" => 1}.to_json)
+          response.body.should == recipe.to_json
         end
       end
 
@@ -889,16 +743,18 @@ describe AmosController do
         before(:each) do
           setAbilityAuthorized
           User.stub('find').with("1"){user}
+          user.stub('recipes'){recipe_list}
+          recipe_list.stub('find').with("1"){recipe}
           user.stub('save'){false}
-          user.stub('errors'){{:email => ["can't be blank"]}}
-          @params = {:model => 'users', :id => '1', :name => '', :email => ''}
+          recipe.stub('errors'){{:name => ["can't be blank"]}}
+          @params = { :parent_model => 'users',  :parent_id =>"1", :model => "recipes", :id => '1', 'name' => '' }
         end
 
         it "returns a fail response" do
           put :update, @params
           ActiveSupport::JSON.decode(response.body).should ==
           ActiveSupport::JSON.decode(
-              {"email"=>["can't be blank"]}.to_json)
+              {"name"=>["can't be blank"]}.to_json)
         end
 
         it "returns a 400 error code" do
@@ -907,243 +763,37 @@ describe AmosController do
         end
 
       end
-      context 'failed authorization' do
-        before(:each) do
-          setAbilityUnauthorizedUser
-          User.stub('find').with("1"){user}
-          @params = { :model => 'users', :id => '1', :name => 'fred', :email => ''}
-         end
 
-         it "returns a 401 error code" do
-           put :update, @params
-           response.status.should == 401
-         end
 
-        it "returns the correct json data" do
-          put :update, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
-        end
-      end
     end
 
-    describe 'POST /user' do
+    describe 'POST /users/1/recipes' do
 
       context 'successful operation' do
         before(:each) do
           setAbilityAuthorized
-          @auser = User.new(:name => 'J Smith', :email => 'smith@smith.com')
-          User.stub(:new){@auser}
-          user.stub('save'){true}
-          @params = {:model => 'users', :name => 'J Smith', :email => 'smith@smith.com'}
-        end
-
-        it "selects the correct model" do
-          post :create, @params
-          assigns[:model].should == User
+          @attrs = {:name => "test", :description => "description" }
+          @params = { :parent_model => 'users',  :parent_id =>"1", :model => "recipes",  :recipe => @attrs }
         end
 
         it "calls the correct method" do
-          User.should_receive(:new).with("name" => "J Smith", 'email' => 'smith@smith.com' ).and_return(user)
+          User.should_receive(:find).with("1"){ user }
+          user.should_receive(:recipes){ recipe_list }
+          recipe_list.should_receive(:new).with(@attrs.stringify_keys){ Recipe.new(@attrs) }
           post :create, @params
         end
 
         it "returns a success response" do
+          User.should_receive(:find).with("1"){ user }
+          user.should_receive(:recipes){ recipe_list }
+          recipe_list.should_receive(:new).with(@attrs.stringify_keys){ Recipe.new(@attrs) }
           post :create, @params
           ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"name"=>"J Smith", "email"=>"smith@smith.com"}.to_json)
-        end
-      end
-
-      context 'failed operation' do
-        before(:each) do
-          @params = {:model => 'users', :name => 'J Smith'}
-        end
-
-        it "returns a fail response" do
-          post :create, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"email"=>["can't be blank"]}.to_json)
-        end
-
-        it "returns a 400 error code" do
-          post :create, @params
-          response.status.should == 400
-        end
-
-      end
-
-      context 'failed authorization' do
-        before(:each) do
-          setAbilityUnauthorizedUser
-          User.stub('find').with(1){user}
-          @params = {:model => 'users', :name => 'J Smith'}
-         end
-
-         it "returns a 401 error code" do
-           post :create, @params
-           response.status.should == 401
-         end
-
-        it "returns the correct json data" do
-          post :create, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode({"error" => "You are not authorized to access this data"}.to_json)
-        end
-      end
-
-    end
-
-    describe 'handling associations' do
-      describe 'single association' do
-        before(:each) do
-          setAbilityAuthorized
-          User.should_receive('find').with('1'){user}
-          user.stub('recipes'){[recipe, recipe]}
-          @params = {
-                      :model => 'users', :id => '1',
-                      :fields => { :only => [:name], :include => :recipes }
-                }
-        end
-
-         it 'fetches the correct association' do
-          user.should_receive('recipes')
-          get :show, @params
-        end
-
-        it "returns the correct json data" do
-          get :show, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"name"=>"J Smith",
-                "recipes" => [
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId" => nil},
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId" => nil}
-                ]
-              }.to_json)
-        end
-      end
-
-      describe 'multiple associations' do
-        before(:each) do
-          setAbilityAuthorized
-          User.should_receive('find').with('1'){user}
-          user.stub('recipes'){[recipe, recipe]}
-          user.stub('shops'){[recipe, recipe]}
-          @params = {
-                      :model => 'users', :id => '1',
-                      :fields => { :only => [:name, :email], :include => [:recipes, :shops] }
-                }
-        end
-
-        it 'fetches the correct associations' do
-          user.should_receive('recipes')
-          user.should_receive('shops')
-          get :show, @params
-        end
-
-        it "returns the correct json data" do
-          get :show, @params
-          ActiveSupport::JSON.decode(response.body).should ==
-          ActiveSupport::JSON.decode(
-              {"name"=>"J Smith", "email"=>"smith@smith.com",
-                "recipes" => [
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil},
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil}
-                ],
-                "shops" => [
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil},
-                  {'name' => 'Boiled eggs', 'description' => 'Grab an egg', "userId"=>nil}
-                ]
-              }.to_json)
+          ActiveSupport::JSON.decode(@attrs.stringify_keys.update("id" =>nil, "userId"=>nil).to_json)
         end
       end
     end
-
-  
-    # describe 'GET /user with pagination' do
-    # 
-    #   context 'successful operation' do
-    #     before(:each) do
-    #       setAbilityAuthorized
-    #       User.paginate_results
-    #       User.stub('paginate'){[user,user,user]}
-    #      end
-    # 
-    #     it "calls the correct method" do
-    #       User.should_receive('paginate').with(:page => 2, :per_page => 30){[user]}
-    #       get :index, :model => 'user', :page => 2
-    #     end
-    # 
-    #     it "sets paginate flag" do
-    #       get :index, :model => 'user', :page => 2
-    #       assigns[:paginate_flag].should == true
-    #     end
-    # 
-    #     it "returns the correct json data" do
-    #       get :index, :model => 'user'
-    #       ActiveSupport::JSON.decode(response.body).should == 
-    #       ActiveSupport::JSON.decode([
-    #         {"name" => "J Smith", "email"=>"smith@smith.com"},
-    #         {"name" => "J Smith", "email"=>"smith@smith.com"},
-    #         {"name" => "J Smith", "email"=>"smith@smith.com"}
-    #       ].to_json)
-    #     end
-    #   end
-    # 
-    # end
-
-    # describe 'GET /user/find with pagination' do
-    # 
-    #   context 'successful operation : single term' do
-    #     before(:each) do
-    #       setAbilityAuthorized
-    #       User.paginate_results
-    #       result = []
-    #       User.stub('scoped_by_name').with('J Smith'){result}
-    #       result.stub('paginate'){[user, user, user]}
-    #      end
-    # 
-    #     it "calls the correct method with no field filter" do
-    #       result = [user, user, user]
-    #       User.should_receive('scoped_by_name').with('J Smith'){result}
-    #       result.should_receive('paginate'){[user, user, user]}
-    #       get :find, :model => 'user', :query => 'by_name',:term => 'J Smith'
-    #     end
-    # 
-    #     it "returns the correct json data with no field filter" do
-    #       get :find, :model => 'user', :query =>'by_name',:term => "J Smith"
-    #       ActiveSupport::JSON.decode(response.body).should == 
-    #       ActiveSupport::JSON.decode([
-    #         {"name" => "J Smith", "email"=>"smith@smith.com"},
-    #         {"name" => "J Smith", "email"=>"smith@smith.com"},
-    #         {"name" => "J Smith", "email"=>"smith@smith.com"}
-    #       ].to_json)
-    #     end
-    # 
-    #     it "determines the correct fields with field filter" do
-    #       get :find, :model => 'user', :query =>'by_name',:term => 'J Smith', :fields => 'email'
-    #       assigns[:the_fields].should == ['email']
-    #     end
-    # 
-    #     it "returns the correct json data with field filter" do
-    #       get :find, :model => 'user', :query =>'by_name',:term => 'J Smith', :fields => 'email'
-    #       ActiveSupport::JSON.decode(response.body).should == 
-    #       ActiveSupport::JSON.decode([
-    #         {"email"=>"smith@smith.com"},
-    #         {"email"=>"smith@smith.com"},
-    #         {"email"=>"smith@smith.com"}
-    #       ].to_json)
-    #     end
-    # 
-    #   end
-    # 
-    # end
-    
   end
-  
 
   def setAbilityAuthorized
     eval <<-eos
@@ -1163,7 +813,7 @@ describe AmosController do
 
     eos
 
-  end 
+  end
 
   def setAbilityUnauthorized
     eval <<-eos
@@ -1183,7 +833,7 @@ describe AmosController do
 
     eos
 
-  end 
+  end
 
   def setAbilityUnauthorizedUser
     eval <<-eos
@@ -1206,6 +856,6 @@ describe AmosController do
 
     eos
 
-  end 
+  end
 
 end

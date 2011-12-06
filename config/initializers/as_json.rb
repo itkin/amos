@@ -5,7 +5,7 @@ class ActiveRecord::Base
     define_method "as_json" do |*options|
       
       if options.compact.blank? or options.to_s == 'default'
-        super(opts).merge( :except => [:created_at, :updated_at])
+        super(opts)#.merge( :except => [:created_at, :updated_at])
       else
         super(*options)
       end
