@@ -22,7 +22,13 @@ class Hash
       if value.is_a?(Hash)
         self[key] = value.underscore_keys!
       elsif value.is_a?(Array)
-        self[key] = value.collect{|a| a.underscore_keys! }
+        self[key] = value.collect do |a|
+          if a.respond_to?(:underscore_keys!)
+            a.underscore_keys!
+          else
+            a
+          end
+        end
       end
       self[key.to_s.underscore] = delete(key)
     end
@@ -35,13 +41,15 @@ class Hash
       old_key = keys_pair.keys.first
       new_key = keys_pair.values.first
       each_pair do |key, value|
-        if value.is_a?(Hash)
-          self[key] = value.replace_keys!(old_key, new_key)
-        elsif value.is_a?(Array)
-          self[key] = value.collect{|a| a.replace_keys!(old_key, new_key) }
-        end
-        if key.to_s == new_key.to_s
-          self[new_key] = self[old_key]
+        #debugger if key == "emails"
+        #if value.is_a?(Hash)
+        #  self[key] = value.replace_keys!({old_key => new_key})
+        #elsif value.is_a?(Array)
+        #  self[key] = value.collect{|a| a.replace_keys!({old_key => new_key}) }
+        #end
+        if key.to_s == old_key.to_s
+          self[new_key] = self[key]
+          self.delete(key)
         end
       end
     end

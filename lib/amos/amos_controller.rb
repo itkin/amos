@@ -3,7 +3,7 @@ module Amos
     module Helpers
 
       def set_association_keys_for(klass, hash)
-        hash.replace_keys!(klass.reflections.keys.flatten.map { |name| { "#{name}" => "#{name}_attributes"} })
+        hash.replace_keys!(klass.nested_attributes_options.keys.flatten.map { |name| { "#{name}" => "#{name}_attributes"} })
       end
 
       def remove_attributes_from attribute_names, collection
@@ -15,6 +15,8 @@ module Amos
         control_error "Parent model not found" do
           @parent_model = params[:parent_model].singularize.camelize.constantize
           @relation = params[:model].underscore.to_sym
+        end
+        control_error "Reflection not found" do
           @macro = @parent_model.reflections[@relation].macro
         end
       end
@@ -25,10 +27,13 @@ module Amos
         end
       end
 
-      def set_attributes
-        @attributes = remove_attributes_from ['parent_model', 'parent_id', 'fields','format','id', 'model', 'controller', 'action'], params.clone
+      def set_attributes(klass=nil)
+        @attributes = remove_attributes_from ['_', 'parent_model', 'parent_id', 'fields','format','id', 'model', 'controller', 'action'], params.clone
         @attributes.underscore_keys!
-        @attributes = set_association_keys_for(@model, @attributes[@model.name.underscore] || @attributes)
+        if klass
+          @attributes = set_association_keys_for(klass, @attributes[klass.name.underscore] || @attributes)
+        end
+        @attributes
       end
 
       def set_parent_record
@@ -94,13 +99,10 @@ module Amos
     end
 
     module Base
-      include Amos::Controller::Helpers
-
       def index
         authorize :read do
-          options = remove_attributes_from ['parent_model', 'parent_id','updating', 'offset', 'format', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
+          options = remove_attributes_from ['_', 'parent_model', 'parent_id','updating', 'offset', 'format', 'limit','count', 'fields', 'model', 'controller', 'action'], params.clone
           options.underscore_keys!
-
           if @parent_record
             @records = @parent_record.send(@relation).list(options)
           else
@@ -117,7 +119,6 @@ module Amos
       end
       def create
         authorize :create do
-
           if @parent_record and @macro == :has_many
             @record = @parent_record.send(@relation).new(@attributes)
           elsif @parent_record
@@ -135,7 +136,9 @@ module Amos
       end
       def update
         authorize :update do
-          @record.attributes=(@attributes)
+          #if @parent_record and @parent_record.send(@relation).find(params[:id]).update_attributes(@attributes)
+          @record = @parent_record.send(@relation).detect{ |record| record == @record }
+          @record.attributes = @attributes
           if (@parent_record || @record).save
             render_record(@record)
           else
